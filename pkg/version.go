@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package version
+package pkg
 
 // VERSION is the app-global version string, which should be substituted with a
 // real value during build.
-var VERSION = "UNKNOWN"
+var VERSION = "1.1"

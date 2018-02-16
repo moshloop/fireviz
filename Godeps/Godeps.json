@@ -1,9 +1,0 @@
-{
-	"ImportPath": "github.com/moshloop/fireviz",
-	"GoVersion": "go1.9",
-	"GodepVersion": "v79",
-	"Packages": [
-		"github.com/moshloop/fireviz"
-	],
-	"Deps": []
-}
