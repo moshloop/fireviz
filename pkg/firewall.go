@@ -88,6 +88,10 @@ func (rule Rule) String() string {
 	return fmt.Sprintf("source:%s -> dest:%s (%s) - %s", rule.Source, rule.Destination, rule.Ports, rule.Description)
 }
 
+func (rule Rule) ID() string {
+	return fmt.Sprintf("%s_%s_%s", rule.SourceID(), rule.DestinationID(), rule.Ports)
+}
+
 func (rule Rule) DestinationID() string {
 	return ToId(rule.Destination)
 }
@@ -99,6 +103,7 @@ func (rule Rule) SourceID() string {
 func ToId(name string) string {
 	key := strings.Replace(name, "-", "", -1)
 	key = strings.Replace(key, "_", "", -1)
+	key = strings.Replace(key, "*", "A", -1)
 	return strings.Replace(key, " ", "", -1)
 
 }

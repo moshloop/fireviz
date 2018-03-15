@@ -50,14 +50,26 @@ func export(cmd *cobra.Command, args []string) {
 		} else {
 			exporter.ExportCloudFormation(main, vpc)
 		}
+	} else if cmd.Flag("azure").Value.String() == "true" {
+		if location := cmd.Flag("location").Value.String(); location == "" {
+			print("Must specify --location")
+		} else if name := cmd.Flag("name").Value.String(); name == "" {
+			print("Must specify a network security group name using --name")
+		} else {
+			exporter.ExportAzure(main, location, name)
+		}
 	}
+
 }
 
 func init() {
 
-	Export.Flags().Bool("cloudformation", true, "Export cloudformation scripts")
+	Export.Flags().Bool("cloudformation", false, "Export cloudformation scripts")
+	Export.Flags().Bool("azure", false, "Export Azure ARM templates")
 	Export.Flags().Bool("csv", false, "Export CSV rules")
 	Export.Flags().String("mapping", "", "path to a YAML file with address mappings")
 	Export.Flags().String("vpc", "", "The VPC id to use for security groups")
+	Export.Flags().String("name", "", "The name of the azure network security group")
+	Export.Flags().String("location", "", "The Azure location to use ARM templates")
 
 }
