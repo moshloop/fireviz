@@ -2,8 +2,8 @@ package pkg
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type Firewall struct {
@@ -33,19 +33,35 @@ func (from Firewall) MergeInto(fw *Firewall) {
 func (fw Firewall) String() string {
 	return fmt.Sprint(fw.PortMapping)
 }
+
 func (fw Firewall) GroupByDest() map[string][]Rule {
 	var groups = make(map[string][]Rule)
 
 	for _, rule := range fw.Rules {
-		if groups[rule.Destination] == nil {
-			groups[rule.Destination] = make([]Rule, 0)
+		if groups[rule.DestinationID()] == nil {
+			groups[rule.DestinationID()] = make([]Rule, 0)
 		}
-		groups[rule.Destination] = append(groups[rule.Destination], rule)
+		groups[rule.DestinationID()] = append(groups[rule.DestinationID()], rule)
 
 	}
 	return groups
 
 }
+func (fw Firewall) ListGroups() []string {
+	var set = make(map[string]bool)
+
+	for _, rule := range fw.Rules {
+		set[rule.Destination] = true
+		set[rule.Source] = true
+	}
+
+	var list = []string{}
+	for k, _ := range set {
+		list = append(list, k)
+	}
+	return list
+}
+
 func (fw Firewall) Map(mapping map[string]string) {
 	for i := 0; i < len(fw.Rules); i++ {
 		var rule = &fw.Rules[i]
@@ -70,4 +86,19 @@ type Rule struct {
 
 func (rule Rule) String() string {
 	return fmt.Sprintf("source:%s -> dest:%s (%s) - %s", rule.Source, rule.Destination, rule.Ports, rule.Description)
+}
+
+func (rule Rule) DestinationID() string {
+	return ToId(rule.Destination)
+}
+
+func (rule Rule) SourceID() string {
+	return ToId(rule.Source)
+}
+
+func ToId(name string) string {
+	key := strings.Replace(name, "-", "", -1)
+	key = strings.Replace(key, "_", "", -1)
+	return strings.Replace(key, " ", "", -1)
+
 }

@@ -2,24 +2,32 @@ package exporter
 
 import (
 	"encoding/json"
-	"os"
 	"strconv"
+
+	"os"
+
+	"fmt"
+
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/moshloop/fireviz/pkg"
 )
 
 type Template struct {
-	Resources map[string]interface{}
+	AWSTemplateFormatVersion string
+	Resources                map[string]interface{}
 }
 
 func (t Template) YAML() string {
-
+	t.AWSTemplateFormatVersion = "2010-09-09"
 	data, _ := json.MarshalIndent(t, "", "    ")
 	data, _ = yaml.JSONToYAML(data)
-	return string(data)
+
+	return strings.Replace(string(data), "'", "", -1)
 }
-func (t Template) append(key string, group *SecurityGroup) Template {
+
+func (t Template) append(key string, group interface{}) Template {
 	if t.Resources == nil {
 		t.Resources = make(map[string]interface{})
 	}
@@ -27,35 +35,45 @@ func (t Template) append(key string, group *SecurityGroup) Template {
 	return t
 }
 
-type SecurityGroupEgress struct {
+type SecurityGroupEgressProperties struct {
+	GroupName                  string `json:",omitempty"`
 	CidrIP                     string `json:",omitempty"`
 	CidrIpv6                   string `json:",omitempty"`
 	Description                string `json:",omitempty"`
-	DestinationPrefixListID    string `json:",omitempty"`
+	DestinationPrefixListId    string `json:",omitempty"`
 	DestinationSecurityGroupId string `json:",omitempty"`
 	FromPort                   int    `json:",omitempty"`
 	IPProtocol                 string `json:",omitempty"`
 	ToPort                     string `json:",omitempty"`
 }
-type SecurityGroupIngress struct {
-	CidrIP      string `json:",omitempty"`
-	CidrIpv6    string `json:",omitempty"`
-	Description string `json:",omitempty"`
-	FromPort    int    `json:",omitempty"`
-
+type SecurityGroupIngressProperties struct {
+	GroupId                    string `json:",omitempty"`
+	CidrIP                     string `json:",omitempty"`
+	CidrIpv6                   string `json:",omitempty"`
+	Description                string `json:",omitempty"`
+	FromPort                   int    `json:",omitempty"`
 	ToPort                     int    `json:",omitempty"`
-	IPProtocol                 string `json:",omitempty"`
-	SourceSecurityGroupID      string `json:",omitempty"`
+	IpProtocol                 string `json:",omitempty"`
+	SourceSecurityGroupId      string `json:",omitempty"`
 	SourceSecurityGroupName    string `json:",omitempty"`
 	SourceSecurityGroupOwnerID string `json:",omitempty"`
 }
 
+type SecurityGroupIngress struct {
+	Type       string                         `json:",omitempty"`
+	DependsOn  string                         `json:",omitempty"`
+	Properties SecurityGroupIngressProperties `json:",omitempty"`
+}
+
+type SecurityGroupEgress struct {
+	Type       string                        `json:",omitempty"`
+	Properties SecurityGroupEgressProperties `json:",omitempty"`
+}
+
 type Properties struct {
-	GroupDescription     string                 `json:",omitempty"`
-	GroupName            string                 `json:",omitempty"`
-	SecurityGroupEgress  []SecurityGroupEgress  `json:",omitempty"`
-	SecurityGroupIngress []SecurityGroupIngress `json:",omitempty"`
-	VpcID                string                 `json:",omitempty"`
+	GroupDescription string `json:",omitempty"`
+	GroupName        string `json:",omitempty"`
+	VpcId            string `json:",omitempty"`
 }
 type SecurityGroup struct {
 	Type       string     `json:",omitempty"`
@@ -64,30 +82,46 @@ type SecurityGroup struct {
 
 func ExportCloudFormation(fw pkg.Firewall, vpc string) {
 	var template = Template{}
-	for group, rules := range fw.GroupByDest() {
-
-		var sg = SecurityGroup{
+	for _, group := range fw.ListGroups() {
+		template = template.append(pkg.ToId(group), &SecurityGroup{
 			Type: "AWS::EC2::SecurityGroup",
 			Properties: Properties{
 				GroupName:        group,
 				GroupDescription: group,
-				VpcID:            vpc,
+				VpcId:            vpc,
 			},
-		}
+		})
+
+	}
+	for group, rules := range fw.GroupByDest() {
 		for _, rule := range rules {
+			if rule.Ports == "" {
+				pkg.LogError("Missing ports: %+v", rule)
+				continue
+			}
 			var from, _ = strconv.Atoi(rule.Ports)
 			var to, _ = strconv.Atoi(rule.Ports)
-			var ingress = SecurityGroupIngress{
-				IPProtocol:              "tcp",
-				FromPort:                from,
-				ToPort:                  to,
-				Description:             rule.Description,
-				SourceSecurityGroupName: rule.Source,
+			var ingress = SecurityGroupIngressProperties{
+				GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),
+				IpProtocol:            "tcp",
+				FromPort:              from,
+				ToPort:                to,
+				Description:           rule.Description,
+				SourceSecurityGroupId: fmt.Sprintf("!Ref \"%s\"", rule.SourceID()),
 			}
-			sg.Properties.SecurityGroupIngress = append(sg.Properties.SecurityGroupIngress, ingress)
+			template = template.append(group+"Ingress"+rule.SourceID()+rule.Ports, &SecurityGroupIngress{
+				Type:       "AWS::EC2::SecurityGroupIngress",
+				DependsOn:  rule.DestinationID(),
+				Properties: ingress,
+			})
 		}
-
-		template = template.append(group, &sg)
 	}
-	os.Stdout.WriteString("AWSTemplateFormatVersion: 2010-09-09\n" + template.YAML() + "\n")
+
+	os.Stdout.WriteString(template.YAML())
+
+}
+
+func remove(s []string, i int) []string {
+	s[len(s)-1], s[i] = s[i], s[len(s)-1]
+	return s[:len(s)-1]
 }
