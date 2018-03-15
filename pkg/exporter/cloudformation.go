@@ -99,17 +99,27 @@ func ExportCloudFormation(fw pkg.Firewall, vpc string) {
 				pkg.LogError("Missing ports: %+v", rule)
 				continue
 			}
+
 			var from, _ = strconv.Atoi(rule.Ports)
 			var to, _ = strconv.Atoi(rule.Ports)
+			var proto = "tcp"
+			if rule.Ports == "*" {
+				from = 1
+				to = 65535
+			}
+			if rule.Ports == "IPIP" {
+				proto = "94"
+			}
+
 			var ingress = SecurityGroupIngressProperties{
 				GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),
-				IpProtocol:            "tcp",
+				IpProtocol:            proto,
 				FromPort:              from,
 				ToPort:                to,
 				Description:           rule.Description,
 				SourceSecurityGroupId: fmt.Sprintf("!Ref \"%s\"", rule.SourceID()),
 			}
-			template = template.append(group+"Ingress"+rule.SourceID()+rule.Ports, &SecurityGroupIngress{
+			template = template.append(group+"Ingress"+rule.SourceID()+strings.Replace(rule.Ports, "*", "ALL", -1), &SecurityGroupIngress{
 				Type:       "AWS::EC2::SecurityGroupIngress",
 				DependsOn:  rule.DestinationID(),
 				Properties: ingress,
