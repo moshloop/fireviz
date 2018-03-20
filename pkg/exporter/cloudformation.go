@@ -2,9 +2,8 @@ package exporter
 
 import (
 	"encoding/json"
-	"strconv"
-
 	"os"
+	"strconv"
 
 	"fmt"
 
@@ -48,7 +47,7 @@ type SecurityGroupEgressProperties struct {
 }
 type SecurityGroupIngressProperties struct {
 	GroupId                    string `json:",omitempty"`
-	CidrIP                     string `json:",omitempty"`
+	CidrIp                     string `json:",omitempty"`
 	CidrIpv6                   string `json:",omitempty"`
 	Description                string `json:",omitempty"`
 	FromPort                   int    `json:",omitempty"`
@@ -93,41 +92,69 @@ func ExportCloudFormation(fw pkg.Firewall, vpc string) {
 		})
 
 	}
-	for group, rules := range fw.GroupByDest() {
+
+	for _, rules := range fw.GroupByDest() {
 		for _, rule := range rules {
 			if rule.Ports == "" {
 				pkg.LogError("Missing ports: %+v", rule)
 				continue
 			}
+			if rule.SourceCidr != "" {
+				for _, cidr := range strings.Split(rule.SourceCidr, ",") {
+					var props = ToIngress(rule)
+					props.SourceSecurityGroupId = ""
+					props.CidrIp = cidr
+					if !strings.Contains(cidr, "/") {
+						props.CidrIp = props.CidrIp + "/32"
 
-			var from, _ = strconv.Atoi(rule.Ports)
-			var to, _ = strconv.Atoi(rule.Ports)
-			var proto = "tcp"
-			if rule.Ports == "*" {
-				from = 1
-				to = 65535
+					}
+					template = template.append(rule.ID()+pkg.ToId(cidr), &SecurityGroupIngress{
+						Type:       "AWS::EC2::SecurityGroupIngress",
+						DependsOn:  rule.DestinationID(),
+						Properties: props,
+					})
+				}
+			} else {
+				template = template.append(rule.ID(), &SecurityGroupIngress{
+					Type:       "AWS::EC2::SecurityGroupIngress",
+					DependsOn:  rule.DestinationID(),
+					Properties: ToIngress(rule),
+				})
 			}
-			if rule.Ports == "IPIP" {
-				proto = "94"
-			}
-
-			var ingress = SecurityGroupIngressProperties{
-				GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),
-				IpProtocol:            proto,
-				FromPort:              from,
-				ToPort:                to,
-				Description:           rule.Description,
-				SourceSecurityGroupId: fmt.Sprintf("!Ref \"%s\"", rule.SourceID()),
-			}
-			template = template.append(group+"Ingress"+rule.SourceID()+strings.Replace(rule.Ports, "*", "ALL", -1), &SecurityGroupIngress{
-				Type:       "AWS::EC2::SecurityGroupIngress",
-				DependsOn:  rule.DestinationID(),
-				Properties: ingress,
-			})
 		}
+
 	}
 
 	os.Stdout.WriteString(template.YAML())
+
+}
+
+func ToIngress(rule pkg.Rule) SecurityGroupIngressProperties {
+	var from int
+	var to int
+	if strings.Contains(rule.Ports, "-") {
+		from, _ = strconv.Atoi(strings.Split(rule.Ports, "-")[0])
+		to, _ = strconv.Atoi(strings.Split(rule.Ports, "-")[1])
+	} else {
+		from, _ = strconv.Atoi(rule.Ports)
+		to, _ = strconv.Atoi(rule.Ports)
+	}
+	var proto = "tcp"
+	if rule.Ports == "*" {
+		from = 1
+		to = 65535
+	}
+	if rule.Ports == "IPIP" {
+		proto = "94"
+	}
+	return SecurityGroupIngressProperties{
+		GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),
+		IpProtocol:            proto,
+		FromPort:              from,
+		ToPort:                to,
+		Description:           rule.Description,
+		SourceSecurityGroupId: fmt.Sprintf("!Ref \"%s\"", rule.SourceID()),
+	}
 
 }
 

@@ -52,7 +52,9 @@ func (fw Firewall) ListGroups() []string {
 
 	for _, rule := range fw.Rules {
 		set[rule.Destination] = true
-		set[rule.Source] = true
+		if rule.SourceCidr == "" {
+			set[rule.Source] = true
+		}
 	}
 
 	var list = []string{}
@@ -76,6 +78,7 @@ func (fw Firewall) Map(mapping map[string]string) {
 }
 
 type Rule struct {
+	SourceCidr  string
 	Source      string
 	Destination string
 	Ports       string
@@ -89,7 +92,7 @@ func (rule Rule) String() string {
 }
 
 func (rule Rule) ID() string {
-	return fmt.Sprintf("%s_%s_%s", rule.SourceID(), rule.DestinationID(), rule.Ports)
+	return rule.DestinationID() + "Ingress" + ToId(rule.Source) + ToId(rule.Ports)
 }
 
 func (rule Rule) DestinationID() string {
@@ -104,6 +107,9 @@ func ToId(name string) string {
 	key := strings.Replace(name, "-", "", -1)
 	key = strings.Replace(key, "_", "", -1)
 	key = strings.Replace(key, "*", "A", -1)
+	key = strings.Replace(key, "/", "", -1)
+	key = strings.Replace(key, ".", "", -1)
+	key = strings.Replace(key, ",", "", -1)
 	return strings.Replace(key, " ", "", -1)
 
 }

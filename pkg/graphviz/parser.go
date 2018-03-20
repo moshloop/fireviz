@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	_ "reflect"
-	"strconv"
 	"strings"
 
 	"github.com/gonum/gonum/graph/formats/dot"
@@ -67,8 +66,12 @@ func parse_Stmt(stmts []Stmt, fw *Firewall) {
 			var from = edges.From.(*Node)
 			var to = edges.To.Vertex.(*Node)
 			for _, port := range ToPorts(fw, edges) {
-				var rule = Rule{Source: ToName(from.ID), Destination: ToName(to.ID), Ports: port}
-				rule.Description = fmt.Sprintf("From %s to %s", ToName(from.ID), ToName(to.ID))
+				var rule = Rule{
+					SourceCidr:  FindSourceCidr(edges),
+					Source:      ToName(from.ID),
+					Description: fmt.Sprintf("From %s to %s", ToName(from.ID), ToName(to.ID)),
+					Destination: ToName(to.ID),
+					Ports:       port}
 				fw.Rules = append(fw.Rules, rule)
 			}
 		default:
@@ -90,6 +93,15 @@ func ToPorts(fw *Firewall, node *EdgeStmt) []string {
 
 	return []string{}
 
+}
+
+func FindSourceCidr(node *EdgeStmt) string {
+	for _, attr := range node.Attrs {
+		if attr.Key == "cidr" {
+			return strings.Replace(attr.Val, "\"", "", -1)
+		}
+	}
+	return ""
 }
 func FindPortsByAttribute(fw *Firewall, attrs []*Attr) string {
 	var label, color = "", ""
@@ -153,10 +165,6 @@ func parse_Ports(stmts []Stmt) map[string]string {
 				}
 				var key = fields[0]
 				var value = fields[1]
-				if strings.Contains(value, "-") {
-					value = parse_PortRange(value)
-
-				}
 				if PortMapping == nil {
 					PortMapping = make(map[string]string)
 				}
@@ -169,18 +177,4 @@ func parse_Ports(stmts []Stmt) map[string]string {
 	}
 	return PortMapping
 
-}
-func parse_PortRange(value string) string {
-	var upper = strings.Split(value, "-")[1]
-	var lower = strings.Split(value, "-")[0]
-	var start, _ = strconv.Atoi(lower)
-	var end, _ = strconv.Atoi(upper)
-	if end < start {
-		LogError("Invalid port range:  " + value)
-		return ""
-	}
-	for i := start + 1; i <= end; i++ {
-		value = value + "," + strconv.Itoa(i)
-	}
-	return value
 }
