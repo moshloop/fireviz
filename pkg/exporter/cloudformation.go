@@ -145,7 +145,7 @@ func ToIngress(rule pkg.Rule) SecurityGroupIngressProperties {
 		to = 65535
 	}
 	if rule.Ports == "IPIP" {
-		proto = "94"
+		proto = "4"
 	}
 	return SecurityGroupIngressProperties{
 		GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),

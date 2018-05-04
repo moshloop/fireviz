@@ -38,6 +38,7 @@ func (fw Firewall) GroupByDest() map[string][]Rule {
 	var groups = make(map[string][]Rule)
 
 	for _, rule := range fw.Rules {
+
 		if groups[rule.DestinationID()] == nil {
 			groups[rule.DestinationID()] = make([]Rule, 0)
 		}
@@ -67,8 +68,16 @@ func (fw Firewall) ListGroups() []string {
 func (fw Firewall) Map(mapping map[string]string) {
 	for i := 0; i < len(fw.Rules); i++ {
 		var rule = &fw.Rules[i]
+		if mapping[rule.Source] == "ignore" {
+			//delete element by replacing current element
+			fw.Rules[i] = fw.Rules[len(fw.Rules)-1]
+			fw.Rules = fw.Rules[:len(fw.Rules)]
+			// reprocess
+			i--
+			continue
+		}
 		if mapping[rule.Source] != "" {
-			rule.Source = mapping[rule.Source]
+			rule.SourceCidr = mapping[rule.Source]
 
 		}
 		if mapping[rule.Destination] != "" {
