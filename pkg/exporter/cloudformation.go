@@ -143,9 +143,12 @@ func ToIngress(rule pkg.Rule) SecurityGroupIngressProperties {
 	if rule.Ports == "*" {
 		from = 1
 		to = 65535
-	}
-	if rule.Ports == "IPIP" {
+	} else if strings.ToLower(rule.Ports) == "ipip" {
 		proto = "4"
+	} else if strings.ToLower(rule.Ports) == "icmp" {
+		proto = "icmp"
+		from = -1
+		to = -1
 	}
 	return SecurityGroupIngressProperties{
 		GroupId:               fmt.Sprintf("!GetAtt \"%s.GroupId\"", rule.DestinationID()),
