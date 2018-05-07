@@ -8,7 +8,6 @@ import (
 
 	"github.com/moshloop/fireviz/pkg"
 	"github.com/moshloop/fireviz/pkg/exporter"
-	"github.com/moshloop/fireviz/pkg/graphviz"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -22,7 +21,7 @@ var Export = cobra.Command{
 func export(cmd *cobra.Command, args []string) {
 	var list = make([]pkg.Firewall, 0)
 	for _, file := range args {
-		list = append(list, graphviz.Parse(file))
+		list = append(list, pkg.ParseGraphviz(file))
 	}
 
 	var main = list[0]

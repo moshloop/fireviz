@@ -2,8 +2,12 @@ package pkg
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Firewall struct {
@@ -43,6 +47,21 @@ func (fw Firewall) GroupByDest() map[string][]Rule {
 			groups[rule.DestinationID()] = make([]Rule, 0)
 		}
 		groups[rule.DestinationID()] = append(groups[rule.DestinationID()], rule)
+
+	}
+	return groups
+
+}
+
+func (fw Firewall) GroupBySource() map[string][]Rule {
+	var groups = make(map[string][]Rule)
+
+	for _, rule := range fw.Rules {
+
+		if groups[rule.SourceID()] == nil {
+			groups[rule.SourceID()] = make([]Rule, 0)
+		}
+		groups[rule.SourceID()] = append(groups[rule.SourceID()], rule)
 
 	}
 	return groups
@@ -121,4 +140,43 @@ func ToId(name string) string {
 	key = strings.Replace(key, ",", "", -1)
 	return strings.Replace(key, " ", "", -1)
 
+}
+func Parse(cmd *cobra.Command, args []string) Firewall {
+	var list = make([]Firewall, 0)
+	for _, file := range args {
+		list = append(list, ParseGraphviz(file))
+	}
+
+	var main = list[0]
+	for _, fw := range list[1:] {
+		fw.MergeInto(&main)
+	}
+
+	var mappingFile = cmd.Flag("mapping").Value.String()
+	var mapping = make(map[string]string)
+
+	if mappingFile != "" {
+		println("Mapping addresses using " + mappingFile)
+		source, err := ioutil.ReadFile(mappingFile)
+		if err != nil {
+			panic(err)
+		}
+		if err = yaml.Unmarshal(source, &mapping); err != nil {
+			println(err)
+		}
+
+	}
+
+	mappings, err := cmd.Flags().GetStringSlice("map")
+	if err != nil {
+		panic(err)
+	}
+	if mappings != nil {
+		for _, entry := range mappings {
+			mapping[strings.Split(entry, "=")[0]] = strings.Split(entry, "=")[1]
+		}
+
+	}
+	main.Map(mapping)
+	return main
 }

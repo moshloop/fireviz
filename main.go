@@ -12,7 +12,7 @@ func main() {
 		Use: "fireviz",
 		Run: func(cmd *cobra.Command, args []string) {},
 	}
-	rootCmd.AddCommand(&cmd.Export, &cmd.List)
+	rootCmd.AddCommand(&cmd.Export, &cmd.List, &cmd.Ping)
 	rootCmd.Execute()
 
 }

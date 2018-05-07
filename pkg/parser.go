@@ -1,4 +1,4 @@
-package graphviz
+package pkg
 
 import (
 	"fmt"
@@ -9,11 +9,9 @@ import (
 	"github.com/gonum/gonum/graph/formats/dot"
 	. "github.com/gonum/gonum/graph/formats/dot/ast"
 	"github.com/logrusorgru/aurora"
-	"github.com/moshloop/fireviz/pkg"
-	. "github.com/moshloop/fireviz/pkg"
 )
 
-func Parse(file string) pkg.Firewall {
+func ParseGraphviz(file string) Firewall {
 	source, err := ioutil.ReadFile(file)
 	if err != nil {
 		panic(err)
