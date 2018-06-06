@@ -139,7 +139,7 @@ func ToIngress(rule pkg.Rule) SecurityGroupIngressProperties {
 		from, _ = strconv.Atoi(rule.Ports)
 		to, _ = strconv.Atoi(rule.Ports)
 	}
-	var proto = "tcp"
+	var proto = rule.Protocol
 	if rule.Ports == "*" {
 		from = 1
 		to = 65535

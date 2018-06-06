@@ -69,6 +69,7 @@ func parse_Stmt(stmts []Stmt, fw *Firewall) {
 					Source:      ToName(from.ID),
 					Description: fmt.Sprintf("From %s to %s", ToName(from.ID), ToName(to.ID)),
 					Destination: ToName(to.ID),
+					Protocol:    GetProtocol(edges),
 					Ports:       port}
 				fw.Rules = append(fw.Rules, rule)
 			}
@@ -101,6 +102,16 @@ func FindSourceCidr(node *EdgeStmt) string {
 	}
 	return ""
 }
+
+func GetProtocol(node *EdgeStmt) string {
+	for _, attr := range node.Attrs {
+		if attr.Key == "protocol" {
+			return strings.Replace(attr.Val, "\"", "", -1)
+		}
+	}
+	return "tcp"
+}
+
 func FindPortsByAttribute(fw *Firewall, attrs []*Attr) string {
 	var label, color = "", ""
 

@@ -110,6 +110,7 @@ type Rule struct {
 	Source      string
 	Destination string
 	Ports       string
+	Protocol    string
 	Deny        bool
 	Description string
 	Order       int
@@ -120,7 +121,11 @@ func (rule Rule) String() string {
 }
 
 func (rule Rule) ID() string {
-	return rule.DestinationID() + "Ingress" + ToId(rule.Source) + ToId(rule.Ports)
+	id := rule.DestinationID() + "Ingress" + ToId(rule.Source) + ToId(rule.Ports)
+	if rule.Protocol != "tcp" {
+		id += rule.Protocol[0:1]
+	}
+	return id
 }
 
 func (rule Rule) DestinationID() string {
