@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/moshloop/fireviz/pkg/graphviz"
+	"github.com/moshloop/fireviz/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +12,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			var list = make(map[string]bool)
 			for _, file := range args {
-				for dest, _ := range graphviz.Parse(file).GroupByDest() {
+				for dest, _ := range pkg.ParseGraphviz(file).GroupByDest() {
 					list[dest] = true
 				}
 			}
