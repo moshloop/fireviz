@@ -1,1 +1,4 @@
 bin/
+vendor/
+build/
+.DS_Store

@@ -6,9 +6,9 @@ import (
 	_ "reflect"
 	"strings"
 
-	"github.com/gonum/gonum/graph/formats/dot"
-	. "github.com/gonum/gonum/graph/formats/dot/ast"
 	"github.com/logrusorgru/aurora"
+	"gonum.org/v1/gonum/graph/formats/dot"
+	. "gonum.org/v1/gonum/graph/formats/dot/ast"
 )
 
 func ParseGraphviz(file string) Firewall {

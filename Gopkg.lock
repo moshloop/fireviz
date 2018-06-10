@@ -8,12 +8,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "mergerepos2"
-  name = "github.com/gonum/gonum"
-  packages = ["graph/formats/dot","graph/formats/dot/ast","graph/formats/dot/internal/astx","graph/formats/dot/internal/errors","graph/formats/dot/internal/lexer","graph/formats/dot/internal/parser","graph/formats/dot/internal/token"]
-  revision = "e1fa1dcb898917f8c1b074f3ac3256acc941b4d2"
-
-[[projects]]
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
@@ -23,35 +17,47 @@
   branch = "master"
   name = "github.com/logrusorgru/aurora"
   packages = ["."]
-  revision = "ca24023cc0175fdf372518cb1c5062cc86db2634"
+  revision = "d694e6f975a9109e2b063829d563a7c153c4b53c"
 
 [[projects]]
   branch = "master"
-  name = "github.com/mitchellh/mapstructure"
+  name = "github.com/sparrc/go-ping"
   packages = ["."]
-  revision = "a4e142e9c047c904fa2f1e144d9a84e6133024bc"
+  revision = "416e72114cd1edce2f287648f935a60dfe6cf40e"
 
 [[projects]]
   branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "fd32f09af19efc9b1279c54e0d8ed23f66232a15"
+  revision = "1e58aa3361fd650121dceeedc399e7189c05674a"
+
+[[projects]]
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
-  name = "github.com/spf13/pflag"
-  packages = ["."]
-  revision = "6a877ebacf28c5fc79846f4fcd380a5d9872b997"
+  name = "golang.org/x/net"
+  packages = ["bpf","icmp","internal/iana","internal/socket","ipv4","ipv6"]
+  revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
-  branch = "v2"
+  branch = "master"
+  name = "gonum.org/v1/gonum"
+  packages = ["graph/formats/dot","graph/formats/dot/ast","graph/formats/dot/internal/astx","graph/formats/dot/internal/errors","graph/formats/dot/internal/lexer","graph/formats/dot/internal/parser","graph/formats/dot/internal/token"]
+  revision = "d05be515f60dd6eb35eb5aed55fa531921a44cd9"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3073c2b3862f82859f3c01f1bd683886125db80b6b4f8d15838caefa6ef704df"
+  inputs-digest = "87a53d3afc71ef7d8516f7bc3d671565fd7062b3e1fe98e5137a9a92ec909b1a"
   solver-name = "gps-cdcl"
   solver-version = 1

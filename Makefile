@@ -1,3 +1,4 @@
+.PHONY: build
 build:
 	mkdir -p build
 	gox -os="darwin linux windows" -arch="amd64"
