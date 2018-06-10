@@ -14,3 +14,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/sparrc/go-ping"
+
+[[constraint]]
+    branch = "master"
+    name = "github.com/ghodss/yaml"
