@@ -21,7 +21,9 @@ var Export = cobra.Command{
 func export(cmd *cobra.Command, args []string) {
 	var list = make([]pkg.Firewall, 0)
 	for _, file := range args {
-		list = append(list, pkg.ParseGraphviz(file))
+		fw := pkg.ParseGraphviz(file)
+		fw.Prefix = cmd.Flag("prefix").Value.String()
+		list = append(list, fw)
 	}
 
 	var main = list[0]
@@ -79,10 +81,12 @@ func init() {
 
 	Export.Flags().Bool("cloudformation", false, "Export cloudformation scripts")
 	Export.Flags().Bool("azure", false, "Export Azure ARM templates")
+	Export.Flags().Bool("panos", false, "Export XML for Palo Alto Firewalls")
 	Export.Flags().Bool("csv", false, "Export CSV rules")
 	Export.Flags().String("mapping", "", "path to a YAML file with address mappings")
 	Export.Flags().StringSlice("map", nil, "Map a group to a CIDR value, or use 'ignore")
 	Export.Flags().String("vpc", "", "The VPC id to use for security groups")
+	Export.Flags().String("prefix", "", "The prefix to apply to each securit group name")
 	Export.Flags().String("name", "", "The name of the azure network security group")
 	Export.Flags().String("location", "", "The Azure location to use ARM templates")
 

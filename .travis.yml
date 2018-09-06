@@ -3,14 +3,15 @@ language: go
 go:
   - "1.9"
 
-before_install: go get github.com/mitchellh/gox
 script:  make
 deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
   file:
     - fireviz.zip
-    - build/linux/fireviz
+    - fireviz
+    - fireviz.exe
+    - fireviz_osx
   skip_cleanup: true
   on:
     tags: true

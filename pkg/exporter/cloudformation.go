@@ -85,7 +85,7 @@ func ExportCloudFormation(fw pkg.Firewall, vpc string) {
 		template = template.append(pkg.ToId(group), &SecurityGroup{
 			Type: "AWS::EC2::SecurityGroup",
 			Properties: Properties{
-				GroupName:        group,
+				GroupName:        fw.Prefix + group,
 				GroupDescription: group,
 				VpcId:            vpc,
 			},

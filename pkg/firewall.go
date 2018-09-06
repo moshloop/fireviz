@@ -14,6 +14,7 @@ type Firewall struct {
 	Rules          []Rule
 	PortMapping    map[string]string
 	AddressMapping map[string]string
+	Prefix         string
 }
 
 func (fw Firewall) IsValidPortMapping(port string) bool {
